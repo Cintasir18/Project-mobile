@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELORA Admin — Kirim Notifikasi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f6f7f6; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .card { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+  h1 { color: #046C69; font-size: 22px; margin-bottom: 6px; }
+  .sub { color: #888; font-size: 13px; margin-bottom: 28px; }
+  label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 1px; color: #888; margin-bottom: 6px; margin-top: 18px; }
+  input, textarea { width: 100%; padding: 12px 14px; border: none; border-radius: 10px; background: #e8eae8; font-size: 13px; color: #1D2423; outline: none; resize: vertical; }
+  input:focus, textarea:focus { box-shadow: 0 0 0 2px #046C69; }
+  button { margin-top: 24px; width: 100%; padding: 14px; background: #046C69; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+  button:hover { opacity: .88; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .result { margin-top: 18px; padding: 14px; border-radius: 10px; font-size: 13px; display: none; }
+  .result.ok { background: #e5f1f0; color: #046C69; display: block; }
+  .result.err { background: #fdecea; color: #c0392b; display: block; }
+  .login-section, .notif-section { display: none; }
+  .login-section.active, .notif-section.active { display: block; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; background: #e5f1f0; color: #046C69; font-size: 11px; font-weight: 700; margin-left: 8px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🔔 ELORA Admin</h1>
+  <p class="sub">Panel kirim push notification untuk presentasi</p>
+
+  <!-- STEP 1: Login -->
+  <div class="login-section active" id="loginSection">
+    <label>LOGIN ADMIN</label>
+    <input id="adminId" type="text" placeholder="NIS / ID Admin" value="">
+    <label>PASSWORD</label>
+    <input id="adminPass" type="password" placeholder="Password admin">
+    <label>SERVER URL</label>
+    <input id="serverUrl" type="text" value="http://localhost/elora_api">
+    <button id="btnLogin" onclick="doLogin()">Login sebagai Admin</button>
+    <div id="loginResult" class="result"></div>
+  </div>
+
+  <!-- STEP 2: Kirim Notif -->
+  <div class="notif-section" id="notifSection">
+    <p class="sub">Login sebagai <strong id="adminName"></strong> <span class="badge">Admin</span></p>
+    <label>JUDUL NOTIFIKASI</label>
+    <input id="notifTitle" type="text" placeholder="Contoh: Pengumuman SPP November" value="Pengumuman SPP">
+    <label>ISI PESAN</label>
+    <textarea id="notifBody" rows="3" placeholder="Isi pesan notifikasi...">Tagihan SPP bulan November sudah tersedia. Segera lakukan pembayaran sebelum tanggal jatuh tempo.</textarea>
+    <button id="btnSend" onclick="doSend()">📤 Kirim ke Semua Siswa</button>
+    <div id="sendResult" class="result"></div>
+    <button style="margin-top:10px; background:#e8eae8; color:#1D2423;" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<script>
+let token = '';
+let baseUrl = '';
+
+async function doLogin() {
+  const btn = document.getElementById('btnLogin');
+  const res = document.getElementById('loginResult');
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+  res.className = 'result';
+
+  baseUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
+  const id = document.getElementById('adminId').value.trim();
+  const pass = document.getElementById('adminPass').value;
+
+  try {
+    const r = await fetch(`${baseUrl}/auth/login.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ student_id: id, password: pass })
+    });
+    const data = await r.json();
+    if (data.success && data.token) {
+      if (data.user?.role !== 'admin') {
+        throw new Error('Akun ini bukan admin. Login dengan akun admin.');
+      }
+      token = data.token;
+      document.getElementById('adminName').textContent = data.user?.nama || id;
+      document.getElementById('loginSection').className = 'login-section';
+      document.getElementById('notifSection').className = 'notif-section active';
+    } else {
+      throw new Error(data.message || 'Login gagal');
+    }
+  } catch(e) {
+    res.textContent = '✗ ' + e.message;
+    res.className = 'result err';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Login sebagai Admin';
+}
+
+async function doSend() {
+  const btn = document.getElementById('btnSend');
+  const res = document.getElementById('sendResult');
+  btn.disabled = true;
+  btn.textContent = 'Mengirim...';
+  res.className = 'result';
+
+  const title = document.getElementById('notifTitle').value.trim();
+  const body = document.getElementById('notifBody').value.trim();
+
+  if (!title || !body) {
+    res.textContent = '✗ Judul dan isi pesan tidak boleh kosong.';
+    res.className = 'result err';
+    btn.disabled = false;
+    btn.textContent = '📤 Kirim ke Semua Siswa';
+    return;
+  }
+
+  try {
+    const r = await fetch(`${baseUrl}/notifications/send.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ title, body, target: 'all' })
+    });
+    const data = await r.json();
+    if (data.success) {
+      res.textContent = `✓ ${data.message}`;
+      res.className = 'result ok';
+    } else {
+      throw new Error(data.message || 'Gagal mengirim');
+    }
+  } catch(e) {
+    res.textContent = '✗ ' + e.message;
+    res.className = 'result err';
+  }
+  btn.disabled = false;
+  btn.textContent = '📤 Kirim ke Semua Siswa';
+}
+
+function doLogout() {
+  token = '';
+  document.getElementById('loginSection').className = 'login-section active';
+  document.getElementById('notifSection').className = 'notif-section';
+  document.getElementById('sendResult').className = 'result';
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('loginSection').classList.contains('active')) doLogin();
+  }
+});
+</script>
+</body>
+</html>

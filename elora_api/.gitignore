@@ -1,0 +1,25 @@
+# ── Credentials & secrets ─────────────────────────────────────────────────────
+
+# Firebase Service Account (private key OAuth2 FCM V1)
+config/service-account.json
+
+# FCM legacy server key
+config/fcm.php
+
+# Gemini API key
+config/gemini.php
+
+# Database credentials
+config/database.php
+
+# ── Dev/test files ─────────────────────────────────────────────────────────────
+*.http
+check_key.php
+test_*.php
+
+# ── OS & editor ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
