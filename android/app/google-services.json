@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "289083230009",
+    "project_id": "elora-school",
+    "storage_bucket": "elora-school.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:289083230009:android:6ea8f904570c173e524ae8",
+        "android_client_info": {
+          "package_name": "com.elora.school"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAX_pbGD-pu0g5Y3fkG4NvuH4tbkpHAWC4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,5 @@
+[functions.elora-ai]
+verify_jwt = true
+
+[functions.send-notification]
+verify_jwt = true
