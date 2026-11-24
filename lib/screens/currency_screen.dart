@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:elora_school/theme/colors.dart';
@@ -231,35 +232,17 @@ class _CurrencyPageState extends State<CurrencyPage> {
   }
 
   Widget _buildIntro() {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Convert your currency',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: eloraDark,
-          ),
-        ),
-        SizedBox(height: 6),
-        Text(
-          'Check estimated currency conversions in one place.',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-      ],
+    return const EloraSectionHeader(
+      title: 'Convert your currency',
+      subtitle: 'Check estimated currency conversions in one place.',
     );
   }
 
   Widget _buildConverterCard() {
-    return Container(
+    return EloraCard(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: BorderRadius.circular(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -333,24 +316,9 @@ class _CurrencyPageState extends State<CurrencyPage> {
             },
           ),
           const SizedBox(height: 22),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: convertCurrency,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: eloraPrimary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Convert Currency',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
+          EloraPrimaryButton(
+            label: 'Convert Currency',
+            onPressed: convertCurrency,
           ),
           if (result != null) ...[
             const SizedBox(height: 22),
@@ -429,13 +397,9 @@ class _CurrencyPageState extends State<CurrencyPage> {
       infoText = 'Exchange rates are updated on load.';
     }
 
-    return Container(
+    return EloraCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

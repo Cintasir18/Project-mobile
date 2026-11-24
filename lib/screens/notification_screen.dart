@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 
 import 'package:elora_school/theme/colors.dart';
 import 'package:elora_school/services/notification_data_service.dart';
@@ -142,26 +143,12 @@ class _NotificationPageState extends State<NotificationPage>
                       child: _notifications.isEmpty
                           ? ListView(
                               physics: const AlwaysScrollableScrollPhysics(),
-                              children: [
-                                const SizedBox(height: 120),
-                                Center(
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.notifications_none_rounded,
-                                        size: 56,
-                                        color: Colors.grey.shade300,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        'Belum ada notifikasi',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              children: const [
+                                SizedBox(height: 90),
+                                EloraEmptyState(
+                                  icon: Icons.notifications_none_rounded,
+                                  title: 'Belum ada notifikasi',
+                                  message: 'Notifikasi terbaru akan muncul di sini.',
                                 ),
                               ],
                             )
@@ -226,14 +213,10 @@ class _NotificationPageState extends State<NotificationPage>
       onTap: () => _markAsRead(notification['id'], index),
       child: Stack(
         children: [
-          Container(
+          EloraCard(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
+            borderRadius: BorderRadius.circular(16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

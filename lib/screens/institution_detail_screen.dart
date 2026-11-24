@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -196,14 +197,10 @@ class InstitutionPage extends StatelessWidget {
     required String title,
     required List<Widget> children,
   }) {
-    return Container(
+    return EloraCard(
       width: double.infinity,
       padding: const EdgeInsets.all(17),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(19),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: BorderRadius.circular(19),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

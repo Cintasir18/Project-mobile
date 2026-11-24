@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import 'package:elora_school/theme/colors.dart';
@@ -129,26 +130,11 @@ class _EloraAiPageState extends State<EloraAiPage> {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE5F1F0),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.circle, size: 7, color: eloraPrimary),
-                SizedBox(width: 5),
-                Text(
-                  'AI Assistant',
-                  style: TextStyle(
-                    color: eloraPrimary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+          const EloraStatusBadge(
+            label: 'AI Assistant',
+            color: eloraPrimary,
+            backgroundColor: Color(0xFFE5F1F0),
+            fontSize: 10,
           ),
         ],
       ),
@@ -166,11 +152,11 @@ class _EloraAiPageState extends State<EloraAiPage> {
 
         return Align(
           alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
+          child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 340),
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-            decoration: BoxDecoration(
+            child: EloraCard(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
               color: isUser ? eloraPrimary : Colors.white,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
@@ -178,9 +164,10 @@ class _EloraAiPageState extends State<EloraAiPage> {
                 bottomLeft: Radius.circular(isUser ? 16 : 4),
                 bottomRight: Radius.circular(isUser ? 4 : 16),
               ),
-              border: isUser ? null : Border.all(color: Colors.grey.shade200),
-            ),
-            child: isUser
+              border: Border.all(
+                color: isUser ? eloraPrimary : Colors.grey.shade200,
+              ),
+              child: isUser
                 ? Text(
                     message['message'].toString(),
                     style: const TextStyle(
@@ -227,7 +214,8 @@ class _EloraAiPageState extends State<EloraAiPage> {
                       h2Padding: const EdgeInsets.only(bottom: 4),
                     ),
                   ),
-          ),
+                ),
+              ),
         );
       },
     );
@@ -276,7 +264,7 @@ class _EloraAiPageState extends State<EloraAiPage> {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
+            child: EloraTextField(
               controller: _controller,
               enabled: !_isLoading,
               minLines: 1,

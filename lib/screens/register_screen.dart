@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 
 import 'package:elora_school/theme/colors.dart';
 import 'package:elora_school/services/auth_service.dart';
@@ -242,39 +243,11 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 48),
 
-            SizedBox(
-              width: double.infinity,
+            EloraPrimaryButton(
+              label: 'Daftar',
+              onPressed: _isLoadingInstitutions ? null : _register,
+              isLoading: _isSubmitting,
               height: 46,
-              child: ElevatedButton(
-                onPressed: (_isSubmitting || _isLoadingInstitutions)
-                    ? null
-                    : _register,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: eloraPrimary,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: eloraPrimary.withValues(alpha: 0.6),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        width: 19,
-                        height: 19,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Daftar',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-              ),
             ),
             const SizedBox(height: 30),
           ],
@@ -394,7 +367,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }) {
     return SizedBox(
       height: 45,
-      child: TextField(
+      child: EloraTextField(
         controller: controller,
         keyboardType: keyboardType,
         obscureText: obscureText,

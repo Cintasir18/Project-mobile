@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 
 import 'package:elora_school/theme/colors.dart';
 
@@ -164,23 +165,9 @@ class _TimePageState extends State<TimePage> {
   }
 
   Widget _buildIntro() {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Time across locations',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: eloraDark,
-          ),
-        ),
-        SizedBox(height: 6),
-        Text(
-          'Check the time in different time zones.',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-      ],
+    return const EloraSectionHeader(
+      title: 'Time across locations',
+      subtitle: 'Check the time in different time zones.',
     );
   }
 
@@ -284,18 +271,16 @@ class _TimePageState extends State<TimePage> {
     final offsetLabel = 'UTC${offset >= 0 ? '+' : ''}$offset';
     final isSelected = name == selectedZone;
 
-    return Container(
+    return EloraCard(
       margin: const EdgeInsets.only(bottom: 11),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isSelected ? eloraPrimary.withValues(alpha: 0.08) : Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: isSelected
-              ? eloraPrimary.withValues(alpha: 0.35)
-              : Colors.grey.shade200,
-        ),
+      color: isSelected ? eloraPrimary.withValues(alpha: 0.08) : Colors.white,
+      border: Border.all(
+        color: isSelected
+            ? eloraPrimary.withValues(alpha: 0.35)
+            : Colors.grey.shade200,
       ),
+      borderRadius: BorderRadius.circular(15),
       child: Row(
         children: [
           Container(
@@ -346,13 +331,9 @@ class _TimePageState extends State<TimePage> {
   }
 
   Widget _buildInfo() {
-    return Container(
+    return EloraCard(
       padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: BorderRadius.circular(15),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

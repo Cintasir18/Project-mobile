@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 
 import 'package:elora_school/theme/colors.dart';
 import 'package:elora_school/services/payment_service.dart';
@@ -245,20 +246,13 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _buildSummaryCard() {
-    return Container(
+    return EloraCard(
       width: double.infinity,
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: eloraPrimary,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: eloraPrimary.withValues(alpha: 0.18),
-            blurRadius: 15,
-            offset: const Offset(0, 7),
-          ),
-        ],
-      ),
+      color: eloraPrimary,
+      border: Border.all(color: eloraPrimary),
+      borderRadius: BorderRadius.circular(20),
+      elevation: 3,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -274,23 +268,11 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  unpaidCount > 0 ? 'Action needed' : 'All settled',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              EloraStatusBadge(
+                label: unpaidCount > 0 ? 'Action needed' : 'All settled',
+                color: Colors.white,
+                backgroundColor: Colors.white.withValues(alpha: 0.16),
+                fontSize: 10,
               ),
             ],
           ),
@@ -433,14 +415,10 @@ class _PaymentPageState extends State<PaymentPage> {
   Widget _buildPaymentItem(Map<String, dynamic> payment) {
     final bool isPaid = payment['isPaid'] == true;
 
-    return Container(
+    return EloraCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: eloraCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: Row(
         children: [
           Container(
@@ -489,22 +467,10 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: isPaid
-                  ? Colors.green.withValues(alpha: 0.10)
-                  : Colors.orange.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              payment['status'].toString(),
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: isPaid ? Colors.green : Colors.orange,
-              ),
-            ),
+          EloraStatusBadge(
+            label: payment['status'].toString(),
+            color: isPaid ? Colors.green : Colors.orange,
+            fontSize: 10,
           ),
         ],
       ),
@@ -512,14 +478,10 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _buildInformationCard() {
-    return Container(
+    return EloraCard(
       width: double.infinity,
       padding: const EdgeInsets.all(17),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

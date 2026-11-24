@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 
 import 'package:elora_school/theme/colors.dart';
 import 'package:elora_school/services/notification_data_service.dart';
@@ -93,14 +94,11 @@ class _AdminNotificationPageState extends State<AdminNotificationPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            Container(
+            EloraCard(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: eloraPrimary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: eloraPrimary.withValues(alpha: 0.2)),
-              ),
+              color: eloraPrimary.withValues(alpha: 0.08),
+              border: Border.all(color: eloraPrimary.withValues(alpha: 0.2)),
+              borderRadius: BorderRadius.circular(16),
               child: Row(
                 children: [
                   const Icon(Icons.notifications_active_outlined,
@@ -151,28 +149,11 @@ class _AdminNotificationPageState extends State<AdminNotificationPage> {
             ),
             const SizedBox(height: 32),
 
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                onPressed: _isSending ? null : _sendNotification,
-                icon: _isSending
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Icon(Icons.send_rounded),
-                label: Text(_isSending ? 'Mengirim...' : 'Kirim Notifikasi'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: eloraPrimary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+            EloraPrimaryButton(
+              label: 'Kirim Notifikasi',
+              icon: Icons.send_rounded,
+              isLoading: _isSending,
+              onPressed: _sendNotification,
             ),
           ],
         ),

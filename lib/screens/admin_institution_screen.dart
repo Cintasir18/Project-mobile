@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 
 import 'package:elora_school/theme/colors.dart';
 import 'package:elora_school/services/institution_service.dart';
@@ -350,30 +351,14 @@ class _AdminInstitutionPageState extends State<AdminInstitutionPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Institusi Pendidikan',
-                    style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'Kelola informasi institusi dalam yayasan ELORA.',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                  const EloraSectionHeader(
+                    title: 'Institusi Pendidikan',
+                    subtitle: 'Kelola informasi institusi dalam yayasan ELORA.',
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    onChanged: (value) {
-                      setState(() => _search = value);
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Cari nama, tipe, atau lokasi...',
-                      prefixIcon: const Icon(Icons.search),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
+                  EloraSearchField(
+                    hintText: 'Cari nama, tipe, atau lokasi...',
+                    onChanged: (value) => setState(() => _search = value),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -398,9 +383,7 @@ class _AdminInstitutionPageState extends State<AdminInstitutionPage> {
 
   Widget _buildContent(List<Institution> institutions) {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: eloraPrimary),
-      );
+      return const EloraLoadingState(message: 'Memuat data institusi...');
     }
 
     if (_error != null && _institutions.isEmpty) {

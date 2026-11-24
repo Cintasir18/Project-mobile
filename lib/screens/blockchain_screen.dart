@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 
 import 'package:elora_school/theme/colors.dart';
 import 'package:elora_school/services/payment_service.dart';
@@ -244,12 +245,11 @@ class _BlockchainPageState extends State<BlockchainPage> {
   }
 
   Widget _buildHeaderCard() {
-    return Container(
+    return EloraCard(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: eloraPrimary,
-        borderRadius: BorderRadius.circular(20),
-      ),
+      color: eloraPrimary,
+      border: Border.all(color: eloraPrimary),
+      borderRadius: BorderRadius.circular(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -301,13 +301,9 @@ class _BlockchainPageState extends State<BlockchainPage> {
   }
 
   Widget _buildInfoCard() {
-    return Container(
+    return EloraCard(
       padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5EAE8)),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -394,14 +390,10 @@ class _BlockCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return EloraCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5EAE8)),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -524,21 +516,7 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    return EloraStatusBadge(label: label, color: color, fontSize: 11);
   }
 }
 

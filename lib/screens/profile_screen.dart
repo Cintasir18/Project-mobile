@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:elora_school/theme/colors.dart';
@@ -27,6 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final result = await AuthService.instance.currentProfile();
       if (!mounted) return;
+
       setState(() {
         profile = result;
         _photoPath = result['avatar_url']?.toString();
@@ -49,24 +52,130 @@ class _ProfilePageState extends State<ProfilePage> {
     return value.toString();
   }
 
-  Future<void> _pickPhoto() async {
+  Future<void> _pickPhoto(ImageSource source) async {
     try {
       final xfile = await ImagePicker().pickImage(
-        source: ImageSource.gallery, maxWidth: 512, maxHeight: 512, imageQuality: 85,
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
       );
+
       if (xfile == null) return;
-      final extension = xfile.name.toLowerCase().endsWith('.png') ? 'png' : 'jpg';
-      final url = await AuthService.instance.uploadAvatar(await xfile.readAsBytes(), extension);
+
+      final extension = xfile.name.toLowerCase().endsWith('.png')
+          ? 'png'
+          : 'jpg';
+
+      final url = await AuthService.instance.uploadAvatar(
+        await xfile.readAsBytes(),
+        extension,
+      );
+
       if (!mounted) return;
+
       setState(() => _photoPath = url);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Foto profil berhasil diperbarui!'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       debugPrint('ELORA PICK PHOTO ERROR: $e');
+
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Gagal menyimpan foto ke Supabase Storage.'),
-        behavior: SnackBarBehavior.floating,
-      ));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal memperbarui foto profil.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
+  }
+
+  void _showPhotoSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ubah Foto Profil',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: eloraDark,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Pilih sumber foto yang ingin digunakan.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFE6F2F1),
+                    child: Icon(
+                      Icons.camera_alt_rounded,
+                      color: eloraPrimary,
+                    ),
+                  ),
+                  title: const Text(
+                    'Ambil Foto',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text('Gunakan kamera perangkat'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickPhoto(ImageSource.camera);
+                  },
+                ),
+
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFE6F2F1),
+                    child: Icon(
+                      Icons.photo_library_rounded,
+                      color: eloraPrimary,
+                    ),
+                  ),
+                  title: const Text(
+                    'Pilih dari Galeri',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text('Gunakan foto yang tersimpan'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickPhoto(ImageSource.gallery);
+                  },
+                ),
+
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -74,7 +183,9 @@ class _ProfilePageState extends State<ProfilePage> {
     if (isLoading) {
       return const Scaffold(
         backgroundColor: eloraBackground,
-        body: Center(child: CircularProgressIndicator(color: eloraPrimary)),
+        body: Center(
+          child: CircularProgressIndicator(color: eloraPrimary),
+        ),
       );
     }
 
@@ -140,14 +251,10 @@ class _ProfilePageState extends State<ProfilePage> {
     required String institution,
     required String role,
   }) {
-    return Container(
+    return EloraCard(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: BorderRadius.circular(20),
       child: Column(
         children: [
           SizedBox(
@@ -158,7 +265,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 CircleAvatar(
                   radius: 41,
                   backgroundColor: eloraPrimary.withValues(alpha: 0.10),
-                  backgroundImage: _photoPath != null && _photoPath!.startsWith('http')
+                  backgroundImage:
+                      _photoPath != null && _photoPath!.startsWith('http')
                       ? NetworkImage(_photoPath!)
                       : null,
                   child: _photoPath == null
@@ -173,7 +281,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   bottom: 0,
                   right: 0,
                   child: GestureDetector(
-                    onTap: _pickPhoto,
+                    onTap: _showPhotoSourceDialog,
                     child: Container(
                       width: 28,
                       height: 28,
@@ -257,7 +365,10 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontSize: 9, color: Colors.grey.shade500),
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.grey.shade500,
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -294,26 +405,18 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSection({required String title, required Widget child}) {
-    return Container(
+  Widget _buildSection({
+    required String title,
+    required Widget child,
+  }) {
+    return EloraCard(
       width: double.infinity,
       padding: const EdgeInsets.all(17),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: BorderRadius.circular(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: eloraDark,
-            ),
-          ),
+          EloraSectionHeader(title: title),
           const SizedBox(height: 17),
           child,
         ],
@@ -344,10 +447,17 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _performLogout(BuildContext context) async {
-    try { await AuthService.instance.signOut(); } catch (e) { debugPrint('ELORA LOGOUT ERROR: $e'); }
+    try {
+      await AuthService.instance.signOut();
+    } catch (e) {
+      debugPrint('ELORA LOGOUT ERROR: $e');
+    }
+
     if (!context.mounted) return;
+
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginPage()), (route) => false,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
     );
   }
 
@@ -371,7 +481,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 Navigator.pop(dialogContext);
                 _performLogout(context);
               },
-              child: const Text('Logout', style: TextStyle(color: Colors.red)),
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );

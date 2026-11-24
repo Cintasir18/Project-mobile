@@ -1,17 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Jaringan HTTPS ke Supabase, Firebase, dan layanan eksternal -->
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Lokasi — untuk fitur peta Explore -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-    <!-- Biometrik — untuk fitur login sidik jari/wajah -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
-
-    <!-- Push Notification -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
@@ -20,10 +13,12 @@
         android:label="ELORA"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true"
 >
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:allowBackup="false"
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"

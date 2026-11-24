@@ -2,9 +2,27 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'supabase_service.dart';
+
+/// Exception khusus autentikasi.
+///
+/// toString() sengaja mengembalikan format 'Exception: pesan' agar kode lama
+/// yang memakai `e.toString().replaceFirst('Exception: ', '')` tetap bekerja.
+class AuthFailure implements Exception {
+  final String message;
+
+  /// True jika kegagalan disebabkan email/ID atau password salah.
+  final bool invalidCredentials;
+
+  const AuthFailure(this.message, {this.invalidCredentials = false});
+
+  @override
+  String toString() => 'Exception: $message';
+}
 
 class AuthService {
   AuthService._();
@@ -12,6 +30,11 @@ class AuthService {
   static final AuthService instance = AuthService._();
 
   SupabaseClient get _client => SupabaseService.client;
+
+  // Penyimpanan terenkripsi (Keystore di Android, Keychain di iOS).
+  static final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  static const String _bioIdentifierKey = 'elora_bio_identifier';
+  static const String _bioPasswordKey = 'elora_bio_password';
 
   User? get currentUser => _client.auth.currentUser;
 
@@ -22,6 +45,10 @@ class AuthService {
 
     return 'student_${digest.toString().substring(0, 32)}@example.com';
   }
+
+  // =========================================================
+  // LOGIN DAN REGISTRASI
+  // =========================================================
 
   Future<void> signIn({
     required String identifier,
@@ -40,10 +67,15 @@ class AuthService {
 
       if (profile['is_active'] != true) {
         await signOut();
-        throw Exception('Akun kamu telah dinonaktifkan. Hubungi admin.');
+        throw const AuthFailure(
+          'Akun kamu telah dinonaktifkan. Hubungi admin.',
+        );
       }
     } on AuthException catch (e) {
-      throw Exception(_authMessage(e));
+      throw AuthFailure(
+        _authMessage(e),
+        invalidCredentials: _isInvalidCredentials(e),
+      );
     }
   }
 
@@ -70,7 +102,7 @@ class AuthService {
       if (response.user == null) {
         throw Exception('Registrasi belum berhasil. Silakan coba kembali.');
       }
-      
+
       if (response.session != null) {
         await _client.auth.signOut();
       }
@@ -78,6 +110,115 @@ class AuthService {
       throw Exception(_authMessage(e));
     }
   }
+
+  // =========================================================
+  // LOGIN BIOMETRIK
+  //
+  // Alur: setelah login manual berhasil dan pengguna menyetujui,
+  // identifier dan password disimpan di secure storage. Saat logout,
+  // sesi Supabase dihapus tetapi kredensial ini tetap ada, sehingga
+  // biometrik bisa dipakai untuk masuk kembali. Kredensial hanya dibaca
+  // setelah autentikasi biometrik berhasil (dipastikan oleh layar login).
+  // =========================================================
+
+  Future<bool> hasBiometricCredentials() async {
+    try {
+      final id = await _secureStorage.read(key: _bioIdentifierKey);
+      final pw = await _secureStorage.read(key: _bioPasswordKey);
+
+      return id != null && id.isNotEmpty && pw != null && pw.isNotEmpty;
+    } catch (_) {
+      // Data tidak bisa dibaca (misalnya rusak setelah restore backup).
+      await clearBiometricCredentials();
+      return false;
+    }
+  }
+
+  Future<String?> storedBiometricIdentifier() async {
+    try {
+      return await _secureStorage.read(key: _bioIdentifierKey);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveBiometricCredentials({
+    required String identifier,
+    required String password,
+  }) async {
+    Future<void> write() async {
+      await _secureStorage.write(
+        key: _bioIdentifierKey,
+        value: identifier.trim(),
+      );
+      await _secureStorage.write(key: _bioPasswordKey, value: password);
+    }
+
+    try {
+      await write();
+    } catch (e) {
+      // Data lama rusak (misalnya hasil restore backup Android), bersihkan
+      // seluruh storage lalu coba tulis ulang satu kali.
+      debugPrint('SECURE STORAGE WRITE ERROR, resetting: $e');
+      await _secureStorage.deleteAll();
+      await write();
+    }
+  }
+
+  Future<void> clearBiometricCredentials() async {
+    try {
+      await _secureStorage.delete(key: _bioIdentifierKey);
+      await _secureStorage.delete(key: _bioPasswordKey);
+    } catch (_) {
+      try {
+        await _secureStorage.deleteAll();
+      } catch (_) {
+        // Abaikan: storage tidak tersedia.
+      }
+    }
+  }
+
+  /// Masuk memakai kredensial yang tersimpan. Panggil hanya setelah
+  /// autentikasi biometrik berhasil.
+  Future<void> signInWithBiometric() async {
+    String? identifier;
+    String? password;
+
+    try {
+      identifier = await _secureStorage.read(key: _bioIdentifierKey);
+      password = await _secureStorage.read(key: _bioPasswordKey);
+    } catch (_) {
+      await clearBiometricCredentials();
+    }
+
+    if (identifier == null ||
+        identifier.isEmpty ||
+        password == null ||
+        password.isEmpty) {
+      throw const AuthFailure(
+        'Biometrik belum diaktifkan. Silakan login manual terlebih dahulu.',
+      );
+    }
+
+    try {
+      await signIn(identifier: identifier, password: password);
+    } on AuthFailure catch (e) {
+      if (e.invalidCredentials) {
+        // Password kemungkinan sudah diganti, kredensial lama tidak berlaku.
+        await clearBiometricCredentials();
+        throw const AuthFailure(
+          'Password akun sudah berubah. Silakan login manual lalu aktifkan '
+          'ulang biometrik.',
+          invalidCredentials: true,
+        );
+      }
+      rethrow;
+    }
+  }
+
+  // =========================================================
+  // PROFIL DAN SESI
+  // =========================================================
 
   Future<Map<String, dynamic>> currentProfile() async {
     final user = currentUser;
@@ -121,6 +262,9 @@ class AuthService {
     return result;
   }
 
+  /// Logout hanya menghapus sesi lokal. Kredensial biometrik sengaja
+  /// dibiarkan agar biometrik tetap bisa dipakai setelah logout.
+  /// Hapus lewat clearBiometricCredentials() jika pengguna menonaktifkannya.
   Future<void> signOut() async {
     await _client.auth.signOut(scope: SignOutScope.local);
   }
@@ -153,6 +297,14 @@ class AuthService {
         .eq('id', user.id);
 
     return publicUrl;
+  }
+
+  // =========================================================
+  // PESAN ERROR
+  // =========================================================
+
+  bool _isInvalidCredentials(AuthException error) {
+    return error.message.toLowerCase().contains('invalid login credentials');
   }
 
   String _authMessage(AuthException error) {

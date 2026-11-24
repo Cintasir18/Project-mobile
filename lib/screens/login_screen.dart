@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -25,7 +26,12 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
+  // Perangkat mendukung biometrik atau kunci layar.
   bool _canUseBiometric = false;
+
+  // Sudah ada kredensial tersimpan dari login manual sebelumnya.
+  bool _hasBiometricCredentials = false;
+
   bool _isBiometricLoading = false;
 
   @override
@@ -41,6 +47,10 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  // =========================================================
+  // BIOMETRIK
+  // =========================================================
+
   Future<void> _checkBiometricAvailability() async {
     try {
       final canCheck = await _localAuth.canCheckBiometrics;
@@ -53,10 +63,78 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!canCheck && !isSupported) return;
 
+      final hasCredentials = await AuthService.instance
+          .hasBiometricCredentials();
+
       if (!mounted) return;
-      setState(() => _canUseBiometric = true);
+      setState(() {
+        _canUseBiometric = true;
+        _hasBiometricCredentials = hasCredentials;
+      });
     } catch (e) {
       debugPrint('BIOMETRIC CHECK ERROR: $e');
+    }
+  }
+
+  /// Dipanggil setelah login manual berhasil. Menawarkan pengaktifan biometrik
+  /// atau memperbarui kredensial tersimpan jika akunnya sama.
+  Future<void> _syncBiometricCredentials(
+    String identifier,
+    String password,
+  ) async {
+    if (!_canUseBiometric) return;
+
+    try {
+      final stored = await AuthService.instance.storedBiometricIdentifier();
+      final sameAccount =
+          stored != null &&
+          stored.trim().toLowerCase() == identifier.trim().toLowerCase();
+
+      if (sameAccount) {
+        // Perbarui password tersimpan, misalnya setelah password diganti.
+        await AuthService.instance.saveBiometricCredentials(
+          identifier: identifier,
+          password: password,
+        );
+        return;
+      }
+
+      if (!mounted) return;
+
+      final enable = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Aktifkan Login Biometrik?'),
+          content: const Text(
+            'Setelah logout, kamu bisa masuk kembali hanya dengan sidik jari, '
+            'wajah, atau PIN perangkat. Data login disimpan terenkripsi di '
+            'perangkat ini.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Nanti Saja'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: FilledButton.styleFrom(backgroundColor: eloraPrimary),
+              child: const Text('Aktifkan'),
+            ),
+          ],
+        ),
+      );
+
+      if (enable != true) return;
+
+      await AuthService.instance.saveBiometricCredentials(
+        identifier: identifier,
+        password: password,
+      );
+
+      if (mounted) setState(() => _hasBiometricCredentials = true);
+    } catch (e) {
+      // Kegagalan menyimpan biometrik tidak boleh menggagalkan login.
+      debugPrint('BIOMETRIC ENROLL ERROR: $e');
     }
   }
 
@@ -71,23 +149,15 @@ class _LoginPageState extends State<LoginPage> {
         persistAcrossBackgrounding: true,
       );
 
-      if (!authenticated) {
-        return;
-      }
-
+      if (!authenticated) return;
       if (!mounted) return;
 
+      // Setelah logout sesi sudah hilang, jadi masuk memakai kredensial
+      // tersimpan. Jika sesi masih aktif, langsung lanjut.
       if (!AuthService.instance.isSignedIn) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Silakan login manual terlebih dahulu, '
-              'lalu biometrik bisa digunakan untuk login berikutnya.',
-            ),
-            duration: Duration(seconds: 4),
-          ),
-        );
-        return;
+        await AuthService.instance.signInWithBiometric();
+        await NotificationService.instance.onLogin();
+        if (!mounted) return;
       }
 
       Navigator.of(context).pushAndRemoveUntil(
@@ -105,15 +175,40 @@ class _LoginPageState extends State<LoginPage> {
         _ => 'Autentikasi biometrik gagal. (${e.code})',
       };
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    } on AuthFailure catch (e) {
+      if (!mounted) return;
+      debugPrint('BIOMETRIC SIGN IN ERROR: ${e.message}');
+
+      // Kredensial tersimpan sudah dihapus oleh AuthService, sembunyikan tombol.
+      if (e.invalidCredentials) {
+        setState(() => _hasBiometricCredentials = false);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          duration: const Duration(seconds: 5),
+        ),
+      );
     } catch (e) {
       debugPrint('BIOMETRIC UNKNOWN ERROR: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+
+      // Pembatalan oleh pengguna bukan error yang perlu ditampilkan.
+      final text = e.toString().toLowerCase();
+      if (text.contains('cancel')) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isBiometricLoading = false);
     }
   }
+
+  // =========================================================
+  // LOGIN MANUAL
+  // =========================================================
 
   Future<void> _login() async {
     final identifier = _studentIdController.text.trim();
@@ -121,15 +216,24 @@ class _LoginPageState extends State<LoginPage> {
 
     if (identifier.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nomor pelajar/email dan password harus diisi.')),
+        const SnackBar(
+          content: Text('Nomor pelajar/email dan password harus diisi.'),
+        ),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      await AuthService.instance.signIn(identifier: identifier, password: password);
+      await AuthService.instance.signIn(
+        identifier: identifier,
+        password: password,
+      );
       await NotificationService.instance.onLogin();
+
+      // Tawarkan atau perbarui biometrik sebelum pindah halaman.
+      await _syncBiometricCredentials(identifier, password);
+
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AuthCheckPage()),
@@ -139,13 +243,19 @@ class _LoginPageState extends State<LoginPage> {
       debugPrint('ELORA LOGIN ERROR: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')),
-          duration: const Duration(seconds: 5)),
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          duration: const Duration(seconds: 5),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
+  // =========================================================
+  // UI
+  // =========================================================
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +264,6 @@ class _LoginPageState extends State<LoginPage> {
       resizeToAvoidBottomInset: false,
       body: Column(
         children: [
-
           Expanded(flex: 3, child: Center(child: _buildLogo())),
 
           Expanded(flex: 7, child: _buildLoginPanel()),
@@ -166,7 +275,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildLogo() {
     return Image.asset(
       'assets/logo.png',
-      errorBuilder: (context, error, stackTrace) => const Icon(Icons.school_rounded, color: Colors.white, size: 78),
+      errorBuilder: (context, error, stackTrace) =>
+          const Icon(Icons.school_rounded, color: Colors.white, size: 78),
       width: 100,
       height: 100,
       fit: BoxFit.contain,
@@ -191,7 +301,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Center(
                 child: Column(
                   children: [
@@ -247,42 +356,16 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 25),
 
-              SizedBox(
-                width: double.infinity,
+              EloraPrimaryButton(
+                label: 'Log in',
+                onPressed: _login,
+                isLoading: _isLoading,
                 height: 45,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: eloraPrimary,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: eloraPrimary.withValues(
-                      alpha: 0.6,
-                    ),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Log in',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                ),
               ),
 
-              if (_canUseBiometric) ...[
+              // Tombol biometrik hanya muncul jika perangkat mendukung dan
+              // sudah ada kredensial yang diaktifkan dari login manual.
+              if (_canUseBiometric && _hasBiometricCredentials) ...[
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -305,7 +388,9 @@ class _LoginPageState extends State<LoginPage> {
                   width: double.infinity,
                   height: 45,
                   child: OutlinedButton.icon(
-                    onPressed: _isBiometricLoading ? null : _loginWithBiometric,
+                    onPressed: (_isBiometricLoading || _isLoading)
+                        ? null
+                        : _loginWithBiometric,
                     icon: _isBiometricLoading
                         ? const SizedBox(
                             width: 18,
@@ -381,7 +466,7 @@ class _LoginPageState extends State<LoginPage> {
   }) {
     return SizedBox(
       height: 45,
-      child: TextField(
+      child: EloraTextField(
         controller: controller,
         keyboardType: keyboardType,
         obscureText: obscureText,

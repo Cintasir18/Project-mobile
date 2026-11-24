@@ -1,11 +1,11 @@
-
 import 'package:flutter/material.dart';
 
-import 'package:elora_school/theme/colors.dart';
 import 'package:elora_school/services/auth_service.dart';
 import 'package:elora_school/services/payment_service.dart';
 import 'package:elora_school/services/notification_data_service.dart';
-import 'package:elora_school/screens/quiz_screen.dart';
+import 'package:elora_school/theme/colors.dart';
+import 'package:elora_school/widgets/elora_components.dart';
+import 'package:elora_school/screens/tic_tac_toe_screen.dart';
 import 'package:elora_school/screens/payment_screen.dart';
 import 'package:elora_school/screens/explore_screen.dart';
 import 'package:elora_school/screens/ai_screen.dart';
@@ -14,6 +14,8 @@ import 'package:elora_school/screens/profile_screen.dart';
 import 'package:elora_school/screens/time_screen.dart';
 import 'package:elora_school/screens/blockchain_screen.dart';
 import 'package:elora_school/screens/notification_screen.dart';
+import 'package:get/get.dart';
+import 'package:elora_school/controllers/notification_controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -38,6 +40,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   List<Map<String, dynamic>> _recentNotifs = [];
   bool _isLoadingNotifs = true;
 
+  static const Color _forest = eloraPrimary;
+  static const Color _forestDark = Color(0xFF034F4C);
+  static const Color _sage = Color(0xFFE5F3F1);
+  static const Color _cream = eloraBackground;
+  static const Color _ink = eloraDark;
+  static const Color _muted = Color(0xFF737E7B);
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +54,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _loadProfile();
     _fetchPaymentSummary();
     _fetchRecentNotifications();
+    Get.put(NotificationController(), permanent: true);
   }
 
   @override
@@ -89,7 +99,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _fetchPaymentSummary() async {
     try {
       final data = await PaymentService.instance.myPayments();
-      final unpaid = data.where((p) => p['status'].toString().toLowerCase() != 'paid').toList();
+      final unpaid = data
+          .where((p) => p['status'].toString().toLowerCase() != 'paid')
+          .toList();
       final total = unpaid.fold<double>(0, (sum, p) {
         final amount = double.tryParse('${p['amount']}') ?? 0;
         final paid = double.tryParse('${p['paid_amount'] ?? 0}') ?? 0;
@@ -104,7 +116,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } catch (e) {
       debugPrint('HOME PAYMENT SUMMARY ERROR: $e');
       if (!mounted) return;
-      setState(() { _unpaidAmount = 'Tidak tersedia'; _isLoadingPayment = false; });
+      setState(() {
+        _unpaidAmount = 'Tidak tersedia';
+        _isLoadingPayment = false;
+      });
     }
   }
 
@@ -135,8 +150,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: eloraBackground,
-
+      backgroundColor: _cream,
       body: SafeArea(
         child: IndexedStack(
           index: selectedIndex,
@@ -148,7 +162,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ],
         ),
       ),
-
       bottomNavigationBar: _buildBottomNavigation(),
     );
   }
@@ -158,194 +171,119 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     return RefreshIndicator(
       onRefresh: _refreshAll,
-      color: eloraPrimary,
+      color: _forest,
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: eloraPrimary,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _getInitials(displayName),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 13),
-
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Good morning,',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _shortName(displayName),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: eloraDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  _buildNotificationButton(),
-                ],
-              ),
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+              child: _buildHeroHeader(displayName),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: _buildInstitutionCard(),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
               child: _buildPaymentCard(),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(22, 26, 22, 12),
-              child: const Text(
-                'Quick Access',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: eloraDark,
-                ),
+              padding: const EdgeInsets.fromLTRB(20, 27, 20, 13),
+              child: const EloraSectionHeader(
+                title: 'Quick access',
+                subtitle: 'Tools for your daily needs',
               ),
-            ),
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 22),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.45,
-              ),
-              delegate: SliverChildListDelegate([
-                _buildQuickAccess(
-                  icon: Icons.emoji_events_outlined,
-                  title: 'Quiz',
-                  subtitle: 'Test your knowledge',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const QuizPage()),
-                    );
-                  },
-                ),
-                _buildQuickAccess(
-                  icon: Icons.currency_exchange,
-                  title: 'Currency',
-                  subtitle: 'Currency converter',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CurrencyPage(),
-                      ),
-                    );
-                  },
-                ),
-                _buildQuickAccess(
-                  icon: Icons.access_time_outlined,
-                  title: 'Time',
-                  subtitle: 'Time converter',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const TimePage()),
-                    );
-                  },
-                ),
-                _buildQuickAccess(
-                  icon: Icons.link_outlined,
-                  title: 'Riwayat Perubahan',
-                  subtitle: 'Riwayat perubahan SPP terverifikasi',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const BlockchainPage(),
-                      ),
-                    );
-                  },
-                ),
-              ]),
             ),
           ),
 
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(22, 28, 22, 12),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Recent Notifications',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: eloraDark,
-                      ),
-                    ),
-                  ),
-
-                  GestureDetector(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: EloraQuickAccessGrid(
+                items: [
+                  // 1. Mini Game
+                  EloraQuickAccessItem(
+                    icon: Icons.grid_3x3_outlined,
+                    title: 'Tic Tac Toe',
+                    subtitle: 'Game Strategi',
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const NotificationPage(),
+                          builder: (context) => const TicTacToeScreen(),
                         ),
-                      ).then((_) => _fetchRecentNotifications());
+                      );
                     },
-                    child: Text(
-                      'See all',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: eloraPrimary,
-                      ),
-                    ),
+                  ),
+
+                  // 2. Currency
+                  EloraQuickAccessItem(
+                    icon: Icons.currency_exchange_rounded,
+                    title: 'Currency',
+                    subtitle: 'Konversi mata uang',
+                    backgroundColor: const Color(0xFFFFF0E5),
+                    accentColor: const Color(0xFFBE865A),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CurrencyPage()),
+                      );
+                    },
+                  ),
+
+                  // 3. Time
+                  EloraQuickAccessItem(
+                    icon: Icons.schedule_rounded,
+                    title: 'Time',
+                    subtitle: 'Konversi waktu',
+                    backgroundColor: const Color(0xFFF0ECF8),
+                    accentColor: const Color(0xFF8D79B7),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const TimePage()),
+                      );
+                    },
+                  ),
+
+                  // 4. Riwayat Perubahan
+                  EloraQuickAccessItem(
+                    icon: Icons.link_rounded,
+                    title: 'Riwayat',
+                    subtitle: 'Riwayat administrasi',
+                    backgroundColor: const Color(0xFFEAF2F1),
+                    accentColor: eloraPrimary,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BlockchainPage(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // 5. ELORA AI
+                  EloraQuickAccessItem(
+                    icon: Icons.auto_awesome_rounded,
+                    title: 'ELORA AI',
+                    subtitle: 'Asisten pintar',
+                    backgroundColor: const Color(0xFFECEFF8),
+                    accentColor: const Color(0xFF687DAF),
+                    onTap: () {
+                      setState(() {
+                        selectedIndex = 2;
+                      });
+                    },
                   ),
                 ],
               ),
@@ -354,7 +292,30 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(22, 10, 22, 30),
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+              child: EloraSectionHeader(
+                title: 'Recent notifications',
+                trailing: TextButton(
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationPage(),
+                      ),
+                    );
+
+                    _fetchRecentNotifications();
+
+                    Get.find<NotificationController>().refreshUnreadStatus();
+                  },
+                  child: const Text('See all'),
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
               child: _buildRecentNotifications(),
             ),
           ),
@@ -363,18 +324,140 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildHeroHeader(String displayName) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(26),
+      child: SizedBox(
+        height: 245,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'assets/images/classroom.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(color: _forestDark);
+              },
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Color(0xE6103028),
+                    Color(0xA6103028),
+                    Color(0x25103028),
+                  ],
+                  stops: [0, 0.62, 1],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 17, 17, 19),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(11),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.22),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.school_rounded,
+                          color: Colors.white,
+                          size: 19,
+                        ),
+                      ),
+                      const SizedBox(width: 9),
+                      const Text(
+                        'ELORA',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          letterSpacing: 1.2,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Spacer(),
+                      _buildNotificationButton(),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    _greeting(),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.86),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    _shortName(displayName),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 27,
+                      height: 1.05,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 9),
+                  Text(
+                    _institution.isEmpty
+                        ? 'Your learning journey starts here.'
+                        : _institution,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 11,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Learn, grow, and move forward.',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 11) return 'Good morning,';
+    if (hour < 15) return 'Good afternoon,';
+    if (hour < 18) return 'Good evening,';
+    return 'Good night,';
+  }
+
   Widget _buildRecentNotifications() {
     if (_isLoadingNotifs) {
       return const Center(
         child: Padding(
-          padding: EdgeInsets.all(12),
+          padding: EdgeInsets.all(16),
           child: SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: eloraPrimary,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2, color: _forest),
           ),
         ),
       );
@@ -382,15 +465,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     if (_recentNotifs.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(17),
         decoration: BoxDecoration(
-          color: eloraCard,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.grey.shade200),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE8EAE3)),
         ),
-        child: Text(
-          'Belum ada notifikasi.',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+        child: const Row(
+          children: [
+            Icon(Icons.notifications_none_rounded, color: _muted),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Belum ada notifikasi.',
+                style: TextStyle(fontSize: 12, color: _muted),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -403,7 +494,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         return Padding(
           padding: EdgeInsets.only(top: isFirst ? 0 : 10),
           child: _buildNotificationCard(
-            icon: Icons.notifications_outlined,
+            icon: Icons.notifications_none_rounded,
             title: n['title']?.toString() ?? 'Notifikasi',
             description: n['message']?.toString() ?? '',
             time: n['created_at']?.toString().substring(0, 10) ?? '',
@@ -417,16 +508,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget _buildInstitutionCard() {
     return GestureDetector(
       onTap: () {
-
         setState(() => selectedIndex = 1);
       },
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(17),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         decoration: BoxDecoration(
-          color: eloraCard,
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: Colors.grey.shade200),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(19),
+          border: Border.all(color: const Color(0xFFE9EAE3)),
         ),
         child: Row(
           children: [
@@ -434,48 +523,53 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               width: 43,
               height: 43,
               decoration: BoxDecoration(
-                color: eloraPrimary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(12),
+                color: _sage,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(
-                Icons.school_outlined,
-                color: eloraPrimary,
-                size: 22,
+                Icons.account_balance_outlined,
+                color: _forest,
+                size: 21,
               ),
             ),
-
             const SizedBox(width: 13),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Your Institution',
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                  const Text(
+                    'YOUR INSTITUTION',
+                    style: TextStyle(
+                      fontSize: 9,
+                      letterSpacing: 0.8,
+                      color: _muted,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   Text(
                     _institution.isEmpty ? '—' : _institution,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: eloraDark,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: _ink,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     _studyProgram.isEmpty ? '—' : _studyProgram,
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: const TextStyle(fontSize: 10, color: _muted),
                   ),
                 ],
               ),
             ),
-
-            const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: _muted,
+            ),
           ],
         ),
       ),
@@ -484,66 +578,72 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget _buildPaymentCard() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(19),
       decoration: BoxDecoration(
-        color: eloraPrimary,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE9EAE3)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF20332D).withValues(alpha: 0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               const Expanded(
                 child: Text(
-                  'Payment Status',
+                  'Payment overview',
                   style: TextStyle(
-                    color: Colors.white,
                     fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
+                    color: _ink,
                   ),
                 ),
               ),
-
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
                 ),
-                child: const Text(
-                  'Action needed',
+                decoration: BoxDecoration(
+                  color: _unpaidMonths > 0 ? const Color(0xFFFFF1DD) : _sage,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Text(
+                  _unpaidMonths > 0 ? 'Action needed' : 'On track',
                   style: TextStyle(
-                    color: Colors.white,
                     fontSize: 9,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    color: _unpaidMonths > 0
+                        ? const Color(0xFF9A6422)
+                        : _forest,
                   ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 17),
-
+          const SizedBox(height: 19),
           const Text(
-            'Outstanding',
-            style: TextStyle(color: Colors.white70, fontSize: 10),
+            'Outstanding balance',
+            style: TextStyle(fontSize: 11, color: _muted),
           ),
-
-          const SizedBox(height: 3),
-
+          const SizedBox(height: 5),
           _isLoadingPayment
               ? const SizedBox(
-                  height: 36,
+                  height: 34,
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: SizedBox(
-                      width: 22,
-                      height: 22,
+                      width: 21,
+                      height: 21,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: _forest,
                         strokeWidth: 2,
                       ),
                     ),
@@ -552,24 +652,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               : Text(
                   _unpaidAmount,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 25,
+                    color: _forestDark,
+                    fontSize: 27,
+                    letterSpacing: -0.5,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-
           const SizedBox(height: 5),
-
           Text(
             '$_unpaidMonths months unpaid',
-            style: const TextStyle(color: Colors.white70, fontSize: 11),
+            style: const TextStyle(fontSize: 11, color: _muted),
           ),
-
           const SizedBox(height: 17),
-
           SizedBox(
             width: double.infinity,
-            height: 39,
+            height: 46,
             child: ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -578,117 +675,44 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: eloraPrimary,
+                backgroundColor: _forest,
+                foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(13),
                 ),
               ),
-              child: const Text(
-                'View Payment Details',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'View payment details',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_rounded, size: 16),
+                ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildQuickAccess({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: eloraCard,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 37,
-              height: 37,
-              decoration: BoxDecoration(
-                color: eloraPrimary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: eloraPrimary, size: 20),
-            ),
-
-            const Spacer(),
-
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: eloraDark,
-              ),
-            ),
-
-            const SizedBox(height: 2),
-
-            Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 9, color: Colors.grey.shade500),
-            ),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildNotificationButton() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
+    return EloraNotificationButton(
+      onTap: () async {
+        await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const NotificationPage()),
-        ).then((_) => _fetchRecentNotifications());
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: 43,
-            height: 43,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: const Icon(
-              Icons.notifications_none_rounded,
-              color: eloraDark,
-              size: 22,
-            ),
-          ),
+          MaterialPageRoute(builder: (_) => const NotificationPage()),
+        );
 
-          Positioned(
-            right: 7,
-            top: 6,
-            child: Container(
-              width: 7,
-              height: 7,
-              decoration: const BoxDecoration(
-                color: Colors.redAccent,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ],
-      ),
+        if (!mounted) return;
+
+        await _fetchRecentNotifications();
+        await Get.find<NotificationController>().refreshUnreadStatus();
+      },
     );
   }
 
@@ -702,9 +726,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: eloraCard,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade200),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: const Color(0xFFE9EAE3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -713,20 +737,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             width: 39,
             height: 39,
             decoration: BoxDecoration(
-              color: isImportant
-                  ? Colors.orange.withValues(alpha: 0.12)
-                  : eloraPrimary.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(11),
+              color: isImportant ? const Color(0xFFFFF1DD) : _sage,
+              borderRadius: BorderRadius.circular(13),
             ),
             child: Icon(
               icon,
               size: 19,
-              color: isImportant ? Colors.orange.shade700 : eloraPrimary,
+              color: isImportant ? const Color(0xFFB8792F) : _forest,
             ),
           ),
-
           const SizedBox(width: 12),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -736,31 +756,31 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     Expanded(
                       child: Text(
                         title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: eloraDark,
+                          fontWeight: FontWeight.w800,
+                          color: _ink,
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       time,
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: Colors.grey.shade500,
-                      ),
+                      style: const TextStyle(fontSize: 9, color: _muted),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 4),
-
+                const SizedBox(height: 5),
                 Text(
                   description,
-                  style: TextStyle(
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     fontSize: 10,
-                    height: 1.35,
-                    color: Colors.grey.shade600,
+                    height: 1.4,
+                    color: _muted,
                   ),
                 ),
               ],
@@ -773,7 +793,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget _buildBottomNavigation() {
     return NavigationBar(
-      height: 68,
+      height: 70,
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) {
         setState(() {
@@ -782,53 +802,31 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       },
       backgroundColor: Colors.white,
       elevation: 0,
-      indicatorColor: eloraPrimary.withValues(alpha: 0.12),
+      indicatorColor: _sage,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       destinations: const [
         NavigationDestination(
-          icon: Icon(Icons.home_outlined, size: 22),
-          selectedIcon: Icon(Icons.home_rounded, size: 22, color: eloraPrimary),
+          icon: Icon(Icons.home_outlined, size: 21),
+          selectedIcon: Icon(Icons.home_rounded, size: 21, color: _forest),
           label: 'Home',
         ),
         NavigationDestination(
-          icon: Icon(Icons.location_on_outlined, size: 22),
-          selectedIcon: Icon(
-            Icons.location_on_rounded,
-            size: 22,
-            color: eloraPrimary,
-          ),
+          icon: Icon(Icons.explore_outlined, size: 21),
+          selectedIcon: Icon(Icons.explore_rounded, size: 21, color: _forest),
           label: 'Explore',
         ),
         NavigationDestination(
-          icon: Icon(Icons.smart_toy_outlined, size: 22),
-          selectedIcon: Icon(
-            Icons.smart_toy_rounded,
-            size: 22,
-            color: eloraPrimary,
-          ),
+          icon: Icon(Icons.smart_toy_outlined, size: 21),
+          selectedIcon: Icon(Icons.smart_toy_rounded, size: 21, color: _forest),
           label: 'ELORA AI',
         ),
         NavigationDestination(
-          icon: Icon(Icons.person_outline_rounded, size: 22),
-          selectedIcon: Icon(
-            Icons.person_rounded,
-            size: 22,
-            color: eloraPrimary,
-          ),
+          icon: Icon(Icons.person_outline_rounded, size: 21),
+          selectedIcon: Icon(Icons.person_rounded, size: 21, color: _forest),
           label: 'Profile',
         ),
       ],
     );
-  }
-
-  String _getInitials(String name) {
-    final words = name.trim().split(' ');
-
-    if (words.length >= 2) {
-      return '${words[0][0]}${words[1][0]}'.toUpperCase();
-    }
-
-    return name.isNotEmpty ? name[0].toUpperCase() : 'U';
   }
 
   String _shortName(String name) {

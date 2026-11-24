@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:elora_school/widgets/elora_components.dart';
 
 import 'package:elora_school/theme/colors.dart';
 import 'package:elora_school/services/student_service.dart';
@@ -175,15 +176,9 @@ class _AdminStudentPageState extends State<AdminStudentPage> {
               ],
             ),
             const SizedBox(height: 20),
-            TextField(
+            EloraSearchField(
+              hintText: 'Cari nama, ID, email, atau institusi',
               onChanged: (value) => setState(() => _query = value.trim()),
-              decoration: InputDecoration(
-                hintText: 'Cari nama, ID, email, atau institusi',
-                prefixIcon: const Icon(Icons.search_rounded),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
@@ -245,12 +240,11 @@ class _AdminStudentPageState extends State<AdminStudentPage> {
   }
 
   Widget _summaryCard(String title, String value, IconData icon, Color color) {
-    return Container(
+    return EloraCard(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      color: color.withValues(alpha: 0.08),
+      border: Border.all(color: color.withValues(alpha: 0.12)),
+      borderRadius: BorderRadius.circular(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -279,12 +273,11 @@ class _AdminStudentPageState extends State<AdminStudentPage> {
     final active = _isActive(student);
     final statusColor = active ? Colors.green : Colors.redAccent;
 
-    return Card(
+    return EloraCard(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -321,23 +314,9 @@ class _AdminStudentPageState extends State<AdminStudentPage> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    active ? 'Aktif' : 'Nonaktif',
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
+                EloraStatusBadge(
+                  label: active ? 'Aktif' : 'Nonaktif',
+                  color: statusColor,
                 ),
                 const Spacer(),
                 OutlinedButton.icon(
@@ -351,7 +330,6 @@ class _AdminStudentPageState extends State<AdminStudentPage> {
             ),
           ],
         ),
-      ),
     );
   }
 }
