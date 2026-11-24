@@ -1,112 +1,71 @@
 
-# MISCELLANEOUS
-*.class
-*.log
-*.pyc
-*.swp
-*.swo
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history/
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IDE & EDITOR
-*.iml
-*.ipr
-*.iws
-.idea/
-.vscode/
-*.code-workspace
-
-# FLUTTER & DART
+# Flutter
 .dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
 build/
 coverage/
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.flutter-versions
+.flutter-plugins
+.flutter-plugins-dependencies
 
-# FLUTTER SYMBOLS & OBFUSCATION
-app.*.symbols
-app.*.map.json
-
-# ANDROID
-/android/app/debug
-/android/app/profile
-/android/app/release
-/android/.gradle/
-/android/local.properties
-/android/key.properties
-/android/captures/
-
-# ANDROID SIGNING KEYS
+# Android
+android/.gradle/
+android/.kotlin/
+android/local.properties
+android/key.properties
+android/captures/
+android/.cxx/
+android/build/
+android/app/build/
 *.jks
 *.keystore
 
-# IOS
-/ios/Flutter/.last_build_id
-/ios/Flutter/Generated.xcconfig
-/ios/Flutter/flutter_export_environment.sh
-/ios/ServiceDefinitions.json
-/ios/Runner/GeneratedPluginRegistrant.*
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/.last_build_id
+**/DerivedData/
+xcuserdata/
+*.xcuserstate
 
-# MACOS
-/macos/Flutter/GeneratedPluginRegistrant.swift
+# macOS, Windows, Linux
+macos/Pods/
+macos/Flutter/ephemeral/
+macos/Flutter/GeneratedPluginRegistrant.swift
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
 
-# WINDOWS & LINUX BUILD
-/windows/flutter/ephemeral/
-/linux/flutter/ephemeral/
+# IDE
+.idea/
+.vscode/
+*.iml
 
-# ENVIRONMENT VARIABLES & SECRETS
-.env
-.env.*
-!.env.example
-*.env
-.env.local
-.env.development
-.env.production
-
-# API KEYS & CREDENTIALS
-secrets/
-credentials/
-service-account*.json
-firebase-service-account*.json
-google-services-secret.json
-
-# FIREBASE
-firebase-debug.log
-firebase-debug.*.log
-.firebaserc.local
-
-# SUPABASE
-supabase/.temp/
-supabase/.branches/
-supabase/.env
-supabase/.env.*
-
-# NODE & TYPESCRIPT
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
-*.tsbuildinfo
 
-# GENERATED FILES
-*.freezed.dart
-*.g.dart
+# Supabase
+supabase/.temp/
+supabase/.branches/
 
-# LOCAL DATABASE & BACKUP
-*.sqlite
-*.sqlite3
-*.db
-*.db-journal
-*.bak
-*.backup
+# Secrets
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+service-account.json
+*service-account*.json
+*firebase-adminsdk*.json
+
+# Logs and system files
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
