@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:elora_school/theme/colors.dart';
 
@@ -31,14 +30,16 @@ class EloraQuickAccessGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 280,
+      height: 292,
       child: Row(
         children: [
           Expanded(
             flex: 11,
             child: _MainQuickAccessCard(item: items[0]),
           ),
-          const SizedBox(width: 10),
+
+          const SizedBox(width: 12),
+
           Expanded(
             flex: 10,
             child: Column(
@@ -47,8 +48,9 @@ class EloraQuickAccessGrid extends StatelessWidget {
                   Expanded(
                     child: _SmallQuickAccessCard(item: items[i]),
                   ),
+
                   if (i != items.length - 1)
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                 ],
               ],
             ),
@@ -68,90 +70,134 @@ class _MainQuickAccessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const barHeights = [25.0, 42.0, 32.0, 57.0, 39.0];
+    const barHeights = [
+      24.0,
+      40.0,
+      30.0,
+      55.0,
+      37.0,
+    ];
 
     return Material(
-      color: const Color(0xFFE5F3F1),
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
-        onTap: item.onTap,
-        borderRadius: BorderRadius.circular(22),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      item.icon,
-                      color: eloraPrimary,
-                      size: 22,
-                    ),
-                  ),
-                  const Spacer(),
-                  Icon(
-                    Icons.arrow_outward_rounded,
-                    color: eloraPrimary.withValues(alpha: 0.7),
-                  ),
-                ],
-              ),
-
-              const Spacer(),
-
-              SizedBox(
-                height: 65,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFE8F6F4),
+              Color(0xFFDCEFEB),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: eloraPrimary.withValues(alpha: 0.08),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: eloraPrimary.withValues(alpha: 0.07),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: item.onTap,
+          borderRadius: BorderRadius.circular(24),
+          splashColor: eloraPrimary.withValues(alpha: 0.08),
+          highlightColor: eloraPrimary.withValues(alpha: 0.04),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    for (int i = 0; i < barHeights.length; i++)
-                      Container(
-                        width: 12,
-                        height: barHeights[i],
-                        decoration: BoxDecoration(
-                          color: eloraPrimary.withValues(
-                            alpha: 0.18 + (i * 0.035),
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(14),
                       ),
+                      child: Icon(
+                        item.icon,
+                        color: eloraPrimary,
+                        size: 23,
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.55),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.arrow_outward_rounded,
+                        color: eloraPrimary.withValues(alpha: 0.8),
+                        size: 18,
+                      ),
+                    ),
                   ],
                 ),
-              ),
 
-              const Spacer(),
+                const Spacer(),
 
-              Text(
-                item.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: eloraDark,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+                SizedBox(
+                  height: 66,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      for (int i = 0; i < barHeights.length; i++)
+                        Container(
+                          width: 13,
+                          height: barHeights[i],
+                          decoration: BoxDecoration(
+                            color: eloraPrimary.withValues(
+                              alpha: 0.14 + (i * 0.035),
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 4),
+                const Spacer(),
 
-              Text(
-                item.subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontSize: 11,
+                Text(
+                  item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: eloraDark,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 5),
+
+                Text(
+                  item.subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: eloraDark.withValues(alpha: 0.58),
+                    fontSize: 11,
+                    height: 1.25,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -169,71 +215,92 @@ class _SmallQuickAccessCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: item.backgroundColor,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: item.onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 9,
-            vertical: 7,
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: item.backgroundColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: eloraDark.withValues(alpha: 0.055),
           ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: eloraDark.withValues(alpha: 0.06),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.025),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(10),
+          ],
+        ),
+        child: InkWell(
+          onTap: item.onTap,
+          borderRadius: BorderRadius.circular(18),
+          splashColor: item.accentColor.withValues(alpha: 0.08),
+          highlightColor: item.accentColor.withValues(alpha: 0.04),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 11,
+              vertical: 8,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    item.icon,
+                    size: 18,
+                    color: item.accentColor,
+                  ),
                 ),
-                child: Icon(
-                  item.icon,
-                  size: 17,
-                  color: item.accentColor,
-                ),
-              ),
 
-              const SizedBox(width: 8),
+                const SizedBox(width: 9),
 
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: eloraDark,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: eloraDark,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 2),
+                      const SizedBox(height: 3),
 
-                    Text(
-                      item.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontSize: 8.5,
+                      Text(
+                        item.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: eloraDark.withValues(alpha: 0.55),
+                          fontSize: 9.5,
+                          height: 1.1,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(width: 4),
+
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: item.accentColor.withValues(alpha: 0.55),
+                ),
+              ],
+            ),
           ),
         ),
       ),
